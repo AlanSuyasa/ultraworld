@@ -211,16 +211,42 @@ void inventorymenu(string cat, double maincount = 0) {
 				if(parameters.length() == 0) {
 					speak("This category doesn't have items");
 				} else {
-					double am = stn(input("Amount", "Type the amount"));
-					if (am <= 0) {
-						speak("No less than 0");
-						continue;
+					nv_form f;
+					f.create_window("Auction", false);
+					nv_form_input@ am = f.add_input("amount", "am");
+					@am.shortcut = nv_shortcut(KEY_A, alt = true);
+					nv_form_input@ need = f.add_input("What do you want?", "need");
+					@need.shortcut = nv_shortcut(KEY_W, alt = true);
+					nv_form_input@ bid = f.add_input("minimum bid?", "bid");
+					@bid.shortcut = nv_shortcut(KEY_M, alt = true);
+					nv_form_button@ ok = f.add_button("Auction", "Auction", primary = true);
+					nv_form_button@ can = f.add_button("Cancel", "can", cancel = true);
+					f.focus_control(am, false, false);
+					while (f.monitor()) {
+						wait(5);
+						mainloop();
+						if (f.is_pressed(can)) break;
+						if (f.is_pressed(ok)) {
+							if (am.text == "") {
+								speak("Amount is required");
+								f.focus_control(am, false, false);
+								continue;
+							}
+							else if (need.text == "") {
+								speak("What do you need is required");
+								f.focus_control(need, false, false);
+								continue;
+							}
+							else if (bid.text == "") {
+								speak("Minimum bid is required");
+								f.focus_control(bid, false, false);
+								continue;
+							}
+							send_reliable(0, "auction " + am.text + " " + parameters[counter].name + " " + need.text + " " + bid.text, 0);
+							break;
+						}
 					}
-					string need = input("Item", "What do you want?", "coins", sel_start = 0);
-					if (need == "") continue;
-					double bid = stn(input("Bid", "Minimum bid", "1", sel_start = 0));
-					if (bid < 0) continue;
-					send_reliable(0, "auction " + am + " " + parameters[counter].name + " " + need + " " + bid, 0);
+					f.reset();
 				}
 			}
 			if (key_repeating(KEY_DELETE) and droptimer.elapsed >= droptime and parameters.length() > 0) {

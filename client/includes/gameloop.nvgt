@@ -117,7 +117,7 @@ void gameloop() {
 				cycleinv(1);
 		}
 		if (alt_down && key_pressed(KEY_V)) inv_searcher(@inv.items);
-		if (key_pressed(KEY_BACK) and usetimer.elapsed > 200 and can_move == true) {
+		if (key_pressed(KEY_BACK) and usetimer.elapsed > 1 and can_move == true) {
 			usetimer.restart();
 			if (inv.size > 0 and inv.invpos < inv.get_size())
 				send_reliable(peer_id, "useitem " + inv.items[inv.invpos].name, 6);
@@ -608,31 +608,14 @@ void gameloop() {
 	if (sleepmode != 0 and looking == false) {
 		if ((key_down(KEY_LMENU) or key_down(KEY_RMENU)) and key_pressed(KEY_I) and inbox == false and !frozen) {
 			if (inv.items.length() < 1)
-				speak("you cant drop your empty inventory");
+				speak("you cannot drop your empty inventory");
 			else if (get_tile_at(me.x, me.y, me.z) == "" or get_tile_at(me.x, me.y, me.z) == "air")
 				speak("you can't delete your inventory in the air");
 			else {
-				speak("Are you sure you want to drop your inventory? Press Y for yes or N for no");
-				timer t;
-				t.restart();
-				bool answered = false;
-				bool confirmed = false;
-				while (t.elapsed < 5000 and !answered) { // 5 second timeout
-					if (key_pressed(KEY_Y)) {
-						answered = true;
-						confirmed = true;
-					} else if (key_pressed(KEY_N)) {
-						answered = true;
-						confirmed = false;
-					}
-				}
-				if (confirmed) {
-					rvp.play_stationary("invdelete.ogg", false);
-					send_reliable(peer_id, "draw invdelete.ogg", 7);
-					send_reliable(peer_id, "invdrop", 0);
-					speak("Inventory dropped");
-				} else
-					speak("Cancelled");
+				rvp.play_stationary("invdelete.ogg", false);
+				send_reliable(peer_id, "draw invdelete.ogg", 7);
+				send_reliable(peer_id, "invdrop", 0);
+				speak("Inventory dropped");
 			}
 		}
 		if (get_tile_at(me.x, me.y, me.z) != "underwater") {
